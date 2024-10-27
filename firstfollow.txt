@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+int n, m = 0, p, i = 0, j = 0;
+char a[10][10], f[10];
+
+void follow(char c);
+void first(char c);
+
+int main()
+{
+    int i, z;
+    char c, ch;
+
+    printf("Enter the number of productions:\n");
+    scanf("%d", &n);
+    getchar();  // to consume newline left by scanf
+
+    printf("Enter the productions (e.g., E=TR):\n");
+    for(i = 0; i < n; i++) {
+        scanf("%s", a[i]);
+        getchar();  // to consume newline after each production
+    }
+
+    do
+    {
+        m = 0;
+        printf("Enter the element whose FIRST and FOLLOW sets are to be found: ");
+        scanf("%c", &c);
+        getchar();  // consume newline
+
+        first(c);
+        printf("FIRST(%c) = { ", c);
+        for(i = 0; i < m; i++)
+            printf("%c ", f[i]);
+        printf("}\n");
+
+        strcpy(f, "");  // reset array
+        m = 0;
+
+        follow(c);
+        printf("FOLLOW(%c) = { ", c);
+        for(i = 0; i < m; i++)
+            printf("%c ", f[i]);
+        printf("}\n");
+
+        printf("Do you want to continue (1 for yes / 0 for no)? ");
+        scanf("%d", &z);
+        getchar();  // consume newline
+    }
+    while(z == 1);
+
+    return 0;
+}
+
+void first(char c)
+{
+    int k;
+    if(!isupper(c))  // if c is a terminal
+        f[m++] = c;
+    else
+    {
+        for(k = 0; k < n; k++)
+        {
+            if(a[k][0] == c)  // production rule starts with c
+            {
+                if(a[k][2] == '$')  // epsilon production
+                    follow(a[k][0]);
+                else if(islower(a[k][2]))  // terminal
+                    f[m++] = a[k][2];
+                else  // non-terminal
+                    first(a[k][2]);
+            }
+        }
+    }
+}
+
+void follow(char c)
+{
+    if(a[0][0] == c)  // if c is the start symbol
+        f[m++] = '$';
+
+    for(i = 0; i < n; i++)
+    {
+        for(j = 2; j < strlen(a[i]); j++)
+        {
+            if(a[i][j] == c)
+            {
+                if(a[i][j + 1] != '\0')
+                    first(a[i][j + 1]);
+
+                if(a[i][j + 1] == '\0' && c != a[i][0])
+                    follow(a[i][0]);
+            }
+        }
+    }
+}
